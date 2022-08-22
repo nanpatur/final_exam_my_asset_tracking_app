@@ -9,7 +9,6 @@
 
 import React, {useEffect, useState} from 'react';
 import {
-  FlatList,
   Image,
   Modal,
   SafeAreaView,
@@ -21,6 +20,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  Alert
 } from 'react-native';
 import axiosInstance from './utils/axios';
 
@@ -48,7 +48,7 @@ const Item = ({itemData: {name, location, description}}) => (
       <Text style={{fontSize: 12, fontStyle: 'italic'}}>
         Lokasi: {location}
       </Text>
-      <Text style={{fontSize: 12}}>{description.slice(0, 80)}...</Text>
+      <Text style={{fontSize: 12}}>{description?.slice(0, 80)}...</Text>
     </View>
   </View>
 );
@@ -58,12 +58,21 @@ const ModalForm = ({modalVisible, setModalVisible, onDismiss}) => {
 
   const saveAsset = async () => {
     try {
+      if (!payload.name || !payload.location || !payload.description || !payload.category) {
+        Alert.alert('Form tidak boleh kosong');
+        return 
+      }
       await axiosInstance.post('/assets', payload);
       setModalVisible(!modalVisible);
+      onDismiss()
     } catch (error) {
       console.log(error);
     };
   };
+
+  const onCancel = () => {
+    setModalVisible(!modalVisible);
+  }
 
   return (
     <Modal
@@ -72,8 +81,7 @@ const ModalForm = ({modalVisible, setModalVisible, onDismiss}) => {
       transparent={true}
       onRequestClose={() => {
         setModalVisible(!modalVisible);
-      }}
-      onDismiss={onDismiss}>
+      }}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <Text style={styles.modalText}>Tambah Aset Baru</Text>
@@ -111,6 +119,7 @@ const ModalForm = ({modalVisible, setModalVisible, onDismiss}) => {
                 padding: 10,
                 borderRadius: 5,
                 width: '100%',
+                marginBottom: 4
               }}
               onPress={saveAsset}>
               <Text
@@ -120,6 +129,24 @@ const ModalForm = ({modalVisible, setModalVisible, onDismiss}) => {
                   fontWeight: 'bold',
                 }}>
                 Simpan
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                color: '#fff',
+                padding: 10,
+                borderRadius: 5,
+                width: '100%',
+                borderWidth: 1,
+                borderColor: '#ddd',
+              }}
+              onPress={onCancel}>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                }}>
+                Batal
               </Text>
             </TouchableOpacity>
           </View>
@@ -166,7 +193,7 @@ const App = () => {
           />
         </TouchableOpacity>
       </View>
-      <ScrollView style={{padding: 20}}>
+      <ScrollView style={{padding: 20, height: '90%'}}>
         {assets.map(renderItem)}
       </ScrollView>
 
